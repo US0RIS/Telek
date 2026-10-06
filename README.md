@@ -16,6 +16,7 @@ The first actuator family being modeled is **airborne phased ultrasound / acoust
 - [`HANDOFF.md`](HANDOFF.md) — context for the next AI or human contributor.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system architecture and module boundaries.
 - [`docs/PHYSICS.md`](docs/PHYSICS.md) — actuator physics, assumptions, and open questions.
+- [`docs/MECHANISMS.md`](docs/MECHANISMS.md) — quantitative cross-mechanism screen.
 - `src/telek/` — executable physics/control model.
 - `tests/` — regression tests for the model.
 
@@ -27,7 +28,8 @@ Requires Python 3.11+.
 python -m pip install -e .
 telek hold --mass 0.5
 telek force --power 1000
-telek gap                      # milestones vs shock-saturation bound
+telek gap                      # milestones vs weak-shock acoustic model ceiling
+telek screen                   # cross-mechanism M4 reference comparison
 telek saturation --freq 40000 --range 1 --aperture-area 0.07 --target-area 0.008
 telek link --freq 40000 --range 0.25 --aperture-diameter 0.2 --target-diameter 0.04 \
     --electrical-power 50 --efficiency 0.1 --max-acoustic-power 10 --mass 0.01
@@ -38,7 +40,7 @@ Example interpretation: `telek hold --mass 0.5` reports the *ideal lower-bound* 
 
 ## Current headline result
 
-Nonlinear shock saturation in air caps the acoustic intensity that can arrive at range `L`, however strong the source: `I_sup = pi^2 rho c^5 / (3 beta^2 omega^2 L^2)` (about 207 W/m^2 at 1 m, 40 kHz). With a wearable aperture this rules out M4 (500 g at 3 m) for airborne acoustic radiation pressure by 2-3 orders of magnitude, makes M3 marginal, and leaves M2 open. See `docs/PHYSICS.md` for the derivation and its stated loopholes.
+The current weak-shock acoustic model has a source-power-independent ceiling `I_sup = pi^2 rho c^5 / (3 beta^2 omega^2 L^2)` (about 207 W/m^2 at 1 m, 40 kHz). Under its stated assumptions, a wearable aperture falls 2-3 orders short of M4; this is strong negative evidence, not a universal impossibility theorem. A new cross-mechanism screen finds directed airflow far stronger in raw force at meter scales, but push-only and conspicuous; optical, electrostatic and generic weak-material magnetic coupling are far worse at M4 range. See `docs/PHYSICS.md` and `docs/MECHANISMS.md`.
 
 ## Current milestone
 
