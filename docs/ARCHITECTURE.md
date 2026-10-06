@@ -52,10 +52,11 @@ Safety envelope / saturator
 ## Near-term software roadmap
 
 ### Phase A — physical feasibility
-- Ideal momentum-transfer bounds.
-- Engineering loss model.
-- Range/aperture model.
-- Competing-mechanism comparison.
+- Ideal momentum-transfer bounds. (`telek.acoustics`, done)
+- Engineering loss model. (`telek.linkbudget`, `telek.atmosphere`, first version done)
+- Range/aperture model. (paraxial diffraction capture + shock-saturation bound in `telek.nonlinear`, done)
+- Milestone gap report. (`telek.gap`, `telek gap`, done)
+- Competing-mechanism comparison. (next)
 
 ### Phase B — closed-loop digital twin
 - Rigid target state.
