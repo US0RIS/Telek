@@ -1,6 +1,7 @@
 import pytest
 
 from telek import mechanisms as m
+from telek.cli import main
 
 
 def test_optical_force_power_inverse() -> None:
@@ -73,3 +74,11 @@ def test_invalid_inputs_fail() -> None:
         m.electrostatic_induced_force_sphere(0.15, 0.05, 0.19, 1e6)
     with pytest.raises(ValueError):
         m.magnetic_susceptibility_force_sphere(0.15, 0.05, 0.19, 1.0, 1e-5)
+
+
+def test_cli_screen_runs(capsys: pytest.CaptureFixture[str]) -> None:
+    main(["screen"])
+    out = capsys.readouterr().out
+    assert "round air jet" in out
+    assert "optical radiation" in out
+    assert "weak-shock model ceiling" in out
