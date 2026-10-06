@@ -188,7 +188,7 @@ def test_invalid_scenario_rejected() -> None:
 
 # --- milestone gap ----------------------------------------------------------
 
-def test_m4_is_ruled_out_for_wearable_aperture() -> None:
+def test_m4_is_far_below_weak_shock_model_ceiling() -> None:
     rows = milestone_gap(aperture_area_m2=pi * 0.15**2, target_area_m2=pi * 0.05**2)
     m4 = [r for r in rows if r.milestone == "M4"]
     assert m4 and all(r.margin < 0.01 for r in m4)
@@ -202,4 +202,4 @@ def test_m2_is_not_ruled_out_by_saturation() -> None:
 def test_cli_gap_runs(capsys: pytest.CaptureFixture[str]) -> None:
     main(["gap"])
     out = capsys.readouterr().out
-    assert "M4" in out and "physical bound" in out
+    assert "M4" in out and "model ceiling" in out
