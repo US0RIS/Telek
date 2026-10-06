@@ -1,6 +1,6 @@
 """Nonlinear (shock) saturation limits on acoustic power delivered at range.
 
-Classification: **physical bound (approximate)** under these stated assumptions:
+Classification: **model ceiling under stated weak-shock assumptions**:
 
 - lossless weak-shock theory (Burgers/Earnshaw characteristics + equal-area
   shock fitting) for an initially sinusoidal wave;
@@ -11,9 +11,10 @@ Classification: **physical bound (approximate)** under these stated assumptions:
 - thermoviscous and molecular-relaxation absorption are ignored, which can only
   *lower* delivered power, so ignoring them keeps the bound favorable.
 
-Key result (see ``docs/PHYSICS.md``): however strong the source, the
-mean-square pressure of a plane wave after propagating a distance ``x`` cannot
-exceed the sawtooth saturation value, giving the intensity supremum
+Key result within this model (see ``docs/PHYSICS.md``): as source amplitude
+increases, the mean-square pressure of a plane wave after propagating a fixed
+distance ``x`` approaches a sawtooth saturation value, giving the model
+supremum
 
     I_sup(x) = pi^2 rho c^5 / (3 beta^2 omega^2 x^2).
 
@@ -121,7 +122,7 @@ def delivered_power_supremum(
     target_area_m2: float,
     air: Air = Air(),
 ) -> float:
-    """Upper bound on acoustic power reaching a target through spherical/collimated ray tubes."""
+    """Weak-shock model ceiling on power reaching a target through the modeled ray tubes."""
 
     a_ap = _check_positive("aperture_area_m2", aperture_area_m2)
     a_t = _check_positive("target_area_m2", target_area_m2)
@@ -137,7 +138,7 @@ def radiation_force_supremum(
     momentum_multiplier: float = 2.0,
     air: Air = Air(),
 ) -> float:
-    """Upper bound on acoustic radiation force (N) at range from shock saturation."""
+    """Weak-shock model ceiling on acoustic radiation force (N) at range."""
 
     if not 0.0 < momentum_multiplier <= 2.0:
         raise ValueError("momentum_multiplier must be in (0, 2]")
