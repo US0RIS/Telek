@@ -42,23 +42,34 @@ Do not infer that current systems meet Telek's payload/range requirements. They 
 4. `telek.gap` / `telek gap`: CRITERIA milestones vs the saturation bound.
 5. Derivation, assumptions and loopholes in `docs/PHYSICS.md`; 28 new tests.
 
+## Work completed in the third pass (cross-mechanism screen)
+
+1. Added `telek.mechanisms` with explicit screening models for directed airflow, optical radiation pressure, electrostatic induced-dipole coupling, and weak-material magnetic susceptibility.
+2. Added `telek screen` for an apples-as-possible comparison at a common target mass/range/size.
+3. Added `docs/MECHANISMS.md` with derivations, caveats, reference numbers, and directionality/target-scope failures.
+4. Corrected the acoustic language: the shock result is a **weak-shock model ceiling**, not a universal impossibility theorem.
+5. Added regression tests for the new scaling laws and inverse calculations.
+
 ## Current best understanding
 
-- **Airborne acoustic radiation pressure cannot reach M4 from a wearable aperture.** At 3 m the saturation ceiling gives ~0.01-0.04 N from a 0.3 m aperture (20-40 kHz) against 4.9 N needed; at 40 kHz the aperture would have to be ~36 m^2. This holds for any transducer power or efficiency, within the stated model (see loopholes in `docs/PHYSICS.md`).
+- **The current weak-shock acoustic model puts M4 2-3 orders of magnitude short.** At 3 m it gives ~0.01-0.04 N from a 0.3 m aperture (20-40 kHz) against 4.9 N needed; at 40 kHz the modeled area requirement is ~36 m^2. This is strong negative evidence inside the model, not a universal proof across every nonlinear beam geometry.
 - **M3 is marginal**: sliding a 100 g object at 1 m only clears the bound near 20 kHz (audible edge) with a 0.3 m aperture; lifting it does not clear the bound.
 - **M2 is open**: not saturation-limited. It is decided by source power, efficiency, diffraction and real-array losses, i.e. by engineering data and experiment.
-- Ultrasound therefore remains the best-understood candidate for M1/M2 but is very unlikely to be the M4 mechanism. The mechanism comparison (next item) is now the highest-value work.
-- Saturated wave momentum becomes acoustic streaming (wind). Any claim that streaming rescues ultrasound must be evaluated as an airflow mechanism, with airflow's selectivity problems.
+- **Directed airflow is the raw-force leader in the first mechanism screen.** A centered 5 cm round jet at 100 m/s is estimated at ~1.18 N on a 10 cm target 3 m away with ~1.18 kW ideal jet kinetic power. Matching the 4.903 N M4 weight benchmark would require ~204 m/s and ~10 kW ideal kinetic power in the same model. That is surprisingly close numerically, but it is push-only, noisy, turbulent, and non-selective.
+- **Optical radiation pressure is eliminated by momentum economy** for macroscopic M4: perfect reflection needs ~735 MW of incident optical power merely to equal 4.903 N.
+- **Electrostatic induced-dipole and generic weak-material magnetic forces collapse with range** in the current idealized screens (r^-5 and r^-7 respectively). Magnetics can be excellent on ferromagnetic targets, but that fails the arbitrary-target criterion.
+- Ultrasound remains the best-understood candidate for M1/M2 and the only modeled mechanism here with plausible structured push/pull semantics, but its M4 case must survive full diffraction/nonlinearity validation.
+- Saturated acoustic momentum that becomes streaming belongs in the airflow budget; do not count it twice.
 
 ## Immediate next work
 
 Prefer work that reduces uncertainty in the actuator bottleneck. Good next steps, roughly in order:
 
-1. **Mechanism comparison model** (`telek.mechanisms`?) for directed airflow / streaming jets, electrostatics, magnetics (eddy-current on conductors included), optical radiation pressure, and any credible demonstrated coupling. Each needs the same treatment ultrasound now has: a source-independent physical ceiling at range plus an explicit engineering chain. Score against `CRITERIA.md` without favorable targets. Airflow/streaming should be next, since it is where saturated acoustic momentum goes.
-2. **Attack the saturation bound's loopholes** quantitatively: (a) find published focused-beam measurements in air at high amplitude and compare with `I_sup`; (b) check whether a KZK-type diffraction+nonlinearity model changes the conclusion by more than a small factor; (c) parametric/difference-frequency schemes.
-3. **Literature evidence table** (`data/` + loader) with measured payload/range/pressure/aperture values and citations, separating single-sided portable architectures from enclosing arrays/chambers. Use it to calibrate `electroacoustic_efficiency` and `max_acoustic_power_w` for commodity 40 kHz arrays instead of guessing.
-4. Closed-loop simulation: target state + noisy pose observations + force-command controller + actuator saturation, using `LinkBudget.force_n` as the actuator ceiling.
-5. Only after the actuator model is informative, add EMG hardware adapters. Preserve the generic intent API.
+1. **Attack the acoustic weak-shock loopholes quantitatively.** Implement or validate against a KZK/full diffraction-nonlinearity model; compare against published high-amplitude focused-air measurements; test structured/Bessel/parametric/difference-frequency cases. The next model should try to falsify the current 2-3-order M4 shortfall, not merely restate it.
+2. **Deepen airflow beyond the simple round-jet baseline.** Evaluate pulsed jets/vortex rings, suction/entrainment, opposed or steerable jet geometries, and whether any portable fluid architecture can provide a genuine pull or hold without target preparation. Keep collateral disturbance/selectivity explicit.
+3. **Search for omitted coupling mechanisms.** In particular: electrohydrodynamic/ionic flow (count momentum honestly as airflow), eddy-current forces on arbitrary conductors, microwave/RF radiation pressure or near-field forces, plasma/shock impulse, and hybrid fields. Reject mechanisms that only look good after choosing a favorable target.
+4. **Literature evidence table** (`data/` + loader) with measured payload/range/pressure/aperture/force values and citations, separating single-sided portable architectures from enclosing arrays/chambers.
+5. Closed-loop simulation after a mechanism has a credible force envelope. Only after that add EMG hardware adapters; preserve the generic intent API.
 
 ## Important reasoning constraints
 
