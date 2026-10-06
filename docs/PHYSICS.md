@@ -46,7 +46,7 @@ Classification: **optimistic engineering estimate**. Chain, each factor explicit
 | `T_abs(L) = 10^(-alpha L/10)` | ISO 9613-1 (`alpha` ~ 1.32 dB/m at 40 kHz, 20 C, 50 % RH) | engineering estimate |
 | `eta_cap` | encircled energy of a paraxial focal Airy pattern, `1 - J0(x)^2 - J1(x)^2`, `x = pi D d / (2 lambda L)` | physical model (ideal aperture) |
 | `1+|R|^2` | normal-incidence passive target that lets nothing exit its back face; `~2` for any solid or liquid in air | physical bound |
-| `P_sat` | shock-saturation supremum (below) | physical bound (approximate) |
+| `P_sat` | shock-saturation supremum (below) | weak-shock model ceiling |
 
 Not modeled (all make real devices worse or less predictable): grating lobes,
 phase quantization, element directivity, standing waves between wearer and
@@ -54,8 +54,9 @@ target, trap stability, nonuniform apodization, nonlinear self-defocusing.
 
 ## Shock saturation: a source-power-independent ceiling (`telek.nonlinear`)
 
-Classification: **physical bound (approximate)**. This is the most important
-result so far, because it does not depend on transducer technology.
+Classification: **model ceiling under the stated weak-shock/ray assumptions**.
+This result is important because it is source-power independent inside that
+model, but it is not a universal theorem for every nonlinear acoustic field.
 
 Air is a nonlinear acoustic medium (`beta = 1 + B/2A = 1.2`). A finite-amplitude
 plane wave steepens into a shock after `x_bar = rho c^3 / (beta omega p0)`, after
@@ -72,7 +73,7 @@ intensity increases monotonically to (and never reaches) the supremum
 
 `I_sup(x) = pi^2 rho c^5 / (3 beta^2 omega^2 x^2)`
 
-which is **independent of source power**. At 20 C: 207 W/m^2 at 1 m and 40 kHz
+which is **independent of source power within the weak-shock model**. At 20 C: 207 W/m^2 at 1 m and 40 kHz
 (`2 I/c` = 1.2 Pa radiation pressure on a perfect reflector); it scales as
 `1/(f^2 x^2)`.
 
@@ -113,15 +114,19 @@ With a 0.30 m diameter wearable aperture (0.071 m^2) and 0.10 m target,
 
 Interpretation:
 
-- **M4 is ruled out for airborne acoustic radiation pressure** from a wearable
-  aperture by 2-3 orders of magnitude, independent of transducer power or
-  efficiency, unless one of the stated loopholes is shown to be large.
+- **The current weak-shock model puts M4 2-3 orders of magnitude short** for a
+  wearable aperture, independent of transducer power or efficiency inside the
+  model. Treat this as strong negative evidence, not a universal impossibility
+  proof, until the diffraction/nonlinearity loopholes are tested quantitatively.
 - **M3** is marginal: only sliding (not lifting), only near the audible limit
   or with a larger-than-wearable aperture.
 - **M2** is not limited by saturation; it is limited by source power,
   efficiency, and diffraction, so engineering and measurement decide it.
 
-These numbers are bounds, not predictions; real systems will fall below them.
+These numbers are model ceilings, not device predictions. Ordinary engineering
+losses push downward, while a failure of the model assumptions could move the
+ceiling. That distinction is why KZK/full-field and experimental validation are
+explicit next steps.
 
 ## Why phased arrays remain interesting
 
@@ -129,7 +134,16 @@ A phased aperture can alter wavefront geometry without mechanically steering the
 
 The open question is **force density at useful standoff from a portable aperture**, not whether small-object acoustic manipulation exists.
 
-## Other candidates to compare
+## Cross-mechanism comparison
+
+The first quantitative screen of airflow, photon pressure, electrostatics and
+magnetics is now in `docs/MECHANISMS.md` and `telek.mechanisms`. Its main result
+is that directed airflow is by far the strongest known portable interaction in
+raw force at meter scale, but it is push-only and conspicuous; the field-based
+alternatives collapse with range or target material. None currently supplies
+the bidirectional, selective M4 behavior.
+
+The notes below remain as qualitative context.
 
 ### Directed airflow
 Pros: strong momentum coupling to arbitrary surfaces; mature components.
