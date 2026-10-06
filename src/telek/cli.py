@@ -11,6 +11,16 @@ from .acoustics import (
 from .atmosphere import Air
 from .gap import milestone_gap
 from .linkbudget import LinkScenario, evaluate_link, required_force_to_lift
+from .mechanisms import (
+    electrostatic_induced_force_sphere,
+    magnetic_susceptibility_force_sphere,
+    optical_power_for_force,
+    optical_radiation_force,
+    round_jet_exit_velocity_for_force,
+    round_jet_force_on_centered_disk,
+    round_jet_kinetic_power,
+    round_jet_kinetic_power_for_force,
+)
 from .nonlinear import radiation_force_supremum, saturated_intensity_supremum
 
 
@@ -65,7 +75,21 @@ def _parser() -> argparse.ArgumentParser:
     link.add_argument("--mass", type=float, default=None, help="optional target mass for lift margin, kg")
     _air_args(link)
 
-    gap = sub.add_parser("gap", help="CRITERIA.md milestones vs shock-saturation bound")
+    screen = sub.add_parser("screen", help="compare reference remote-force mechanisms")
+    screen.add_argument("--mass", type=float, default=0.5, help="benchmark target mass in kg")
+    screen.add_argument("--range", type=float, default=3.0, help="target range / center distance in m")
+    screen.add_argument("--target-diameter", type=float, default=0.1, help="target diameter in m")
+    screen.add_argument("--emitter-diameter", type=float, default=0.3, help="wearable field/acoustic aperture diameter in m")
+    screen.add_argument("--acoustic-freq", type=float, default=40e3, help="acoustic comparison frequency in Hz")
+    screen.add_argument("--jet-nozzle-diameter", type=float, default=0.05, help="round-air-jet nozzle diameter in m")
+    screen.add_argument("--jet-velocity", type=float, default=100.0, help="reference jet exit velocity in m/s")
+    screen.add_argument("--optical-power", type=float, default=1000.0, help="reference optical beam power in W")
+    screen.add_argument("--electrostatic-surface-field", type=float, default=3e6, help="idealized emitter surface E field in V/m")
+    screen.add_argument("--magnetic-surface-field", type=float, default=2.0, help="idealized emitter surface B field in T")
+    screen.add_argument("--susceptibility", type=float, default=1e-5, help="target volume magnetic susceptibility magnitude")
+    _air_args(screen)
+
+    gap = sub.add_parser("gap", help="CRITERIA.md milestones vs shock-saturation model ceiling")
     gap.add_argument("--aperture-diameter", type=float, default=0.3, help="wearable aperture diameter, m")
     gap.add_argument("--target-diameter", type=float, default=0.1, help="target diameter, m")
     gap.add_argument("--mu", type=float, default=0.3, help="static friction coefficient for slide cases")
@@ -97,12 +121,92 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     air = _air(args)
+    if args.command == "screen":
+        required = required_force_to_lift(args.mass)
+        aperture_area = pi * args.emitter_diameter**2 / 4.0
+        target_area = pi * args.target_diameter**2 / 4.0
+        acoustic = radiation_force_supremum(
+            args.acoustic_freq,
+            args.range,
+            aperture_area,
+            target_area,
+            air=air,
+        )
+        jet = round_jet_force_on_centered_disk(
+            args.jet_nozzle_diameter,
+            args.jet_velocity,
+            args.target_diameter,
+            args.range,
+            air_density_kg_m3=air.density_kg_m3,
+        )
+        jet_power = round_jet_kinetic_power(
+            args.jet_nozzle_diameter,
+            args.jet_velocity,
+            air_density_kg_m3=air.density_kg_m3,
+        )
+        jet_need_v = round_jet_exit_velocity_for_force(
+            required,
+            args.jet_nozzle_diameter,
+            args.target_diameter,
+            args.range,
+            air_density_kg_m3=air.density_kg_m3,
+        )
+        jet_need_p = round_jet_kinetic_power_for_force(
+            required,
+            args.jet_nozzle_diameter,
+            args.target_diameter,
+            args.range,
+            air_density_kg_m3=air.density_kg_m3,
+        )
+        optical = optical_radiation_force(args.optical_power)
+        optical_need = optical_power_for_force(required)
+        electrostatic = electrostatic_induced_force_sphere(
+            args.emitter_diameter / 2.0,
+            args.target_diameter / 2.0,
+            args.range,
+            args.electrostatic_surface_field,
+        )
+        magnetic = magnetic_susceptibility_force_sphere(
+            args.emitter_diameter / 2.0,
+            args.target_diameter / 2.0,
+            args.range,
+            args.magnetic_surface_field,
+            args.susceptibility,
+        )
+        rows = (
+            ("acoustic weak-shock", acoustic, "structured*", "broad"),
+            ("round air jet", jet, "push", "broad"),
+            ("optical radiation", optical, "push", "broad surface"),
+            ("electrostatic DEP", electrostatic, "pull", "polarizable"),
+            ("magnetic susceptibility", magnetic, "material-dependent", "weak dia/paramagnetic"),
+        )
+        print(
+            f"benchmark: {args.mass:g} kg target, {args.range:g} m range, "
+            f"{args.target_diameter:g} m target diameter; weight = {required:.6g} N"
+        )
+        print(f"{'mechanism':<25}{'force N':>12}{'margin':>12}  {'direction':<18}{'target scope'}")
+        for name, force_n, direction, scope in rows:
+            print(f"{name:<25}{force_n:>12.5g}{force_n / required:>12.3g}  {direction:<18}{scope}")
+        print(
+            f"air jet reference: {args.jet_nozzle_diameter:g} m nozzle @ {args.jet_velocity:g} m/s "
+            f"contains {jet_power / 1000:.3g} kW ideal kinetic power"
+        )
+        print(
+            f"air jet to equal benchmark force in this centered-target model: "
+            f"{jet_need_v:.1f} m/s, {jet_need_p / 1000:.3g} kW ideal kinetic power"
+        )
+        print(f"optical power to equal benchmark force at perfect reflection: {optical_need / 1e6:.3g} MW")
+        print("CLASS: screening comparison. Models are not equally rigorous or equally realizable.")
+        print("NOTE: airflow is push-only and conspicuous; field estimates use optimistic idealized target/source geometry.")
+        print("NOTE: acoustic value is a weak-shock model ceiling, not a universal theorem for every nonlinear beam geometry.")
+        return
+
     if args.command == "saturation":
         intensity = saturated_intensity_supremum(args.freq, args.range, air)
         force = radiation_force_supremum(args.freq, args.range, args.aperture_area, args.target_area, air=air)
         print(f"saturated intensity supremum at {args.range:g} m: {intensity:.6g} W/m^2")
         print(f"radiation force supremum: {force:.6g} N")
-        print("CLASS: physical bound (approximate; lossless weak-shock, spherical/collimated ray tubes)")
+        print("CLASS: weak-shock model ceiling under stated spherical/collimated-ray assumptions")
         print("NOTE: excludes streaming/wind momentum, which belongs to the airflow mechanism model")
         return
 
@@ -123,7 +227,7 @@ def main(argv: list[str] | None = None) -> None:
         print(f"absorption transmission:     {b.absorption_transmission:.4g}     (ISO 9613-1 estimate)")
         print(f"diffraction capture:         {b.capture_fraction:.4g}     (paraxial Airy model)")
         print(f"linear delivered power:      {b.linear_delivered_power_w:.4g} W")
-        print(f"shock-saturation power cap:  {b.nonlinear_power_cap_w:.4g} W   (approximate physical bound)")
+        print(f"shock-saturation power cap:  {b.nonlinear_power_cap_w:.4g} W   (weak-shock model ceiling)")
         print(f"force on target:             {b.force_n:.4g} N")
         print(f"limiting factor:             {b.limiting_factor}")
         if args.mass is not None:
@@ -144,7 +248,7 @@ def main(argv: list[str] | None = None) -> None:
             f"{r.milestone:<4}{r.mode:<14}{r.frequency_hz / 1e3:>7.0f}{r.required_force_n:>10.4g}"
             f"{r.force_supremum_n:>11.4g}{r.margin:>10.3g}{r.required_area_m2:>17.4g}"
         )
-    print("CLASS: physical bound (approximate). margin < 1 => radiation pressure alone cannot meet it.")
+    print("CLASS: weak-shock model ceiling. margin < 1 => this model does not permit the milestone.")
     print("NOTE: 20 kHz is at the edge of human hearing; it conflicts with discreet operation.")
 
 
